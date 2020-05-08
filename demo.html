@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>printer</title> 
+</head>
+<body>
+<div>
+<h1>image print</h1>
+<img src="help.png" id="img">
+<button onclick="imagePrint()">print</button>
+</div>
+
+<div>
+<h1>html print</h1>
+<table id="html" style="width:300px">
+<tr><td>product</td><td>price</td></tr>
+<tr><td>iphone</td><td>$199.00</td></tr>
+</table>
+<button onclick="htmlPrint()">print</button>
+</div>
+
+<script>
+function imagePrint(){
+    var img = document.getElementById("img");
+    canvas = document.createElement('canvas'),
+    canvas.height = img.naturalHeight;
+    canvas.width = img.naturalWidth;
+    ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    ajax({
+        url:"http://127.0.0.1:12365/printPreview?type=img&code=base64",
+        method:"POST",
+        data: canvas.toDataURL().substring(22)
+    });
+}
+function htmlPrint(){
+    ajax({
+        url:"http://127.0.0.1:12365/printPreview?type=html",
+        method:"POST",
+        data: document.getElementById("html").outerHTML
+    });
+}
+function ajax(opt) {
+    try {
+        var url, method = "GET",
+        success = null,
+        data = null,
+        xhr = window.ActiveXObject ? new window.ActiveXObject("Microsoft.XMLHTTP") : new window.XMLHttpRequest();
+        if (opt.url) {
+            url = opt.url;
+            method = opt.method || "GET";
+            success = opt.success || null;
+            data = opt.data || null
+        } else {
+            url = opt
+        }
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState == 4 && typeof(success) === 'function')(success)(xhr.responseText, xhr.status)
+        };
+        xhr.open(method, url, true);
+        xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+        if (method.toUpperCase() == "POST") xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        xhr.send(data)
+    } catch(e) {
+        if (opt.fail && typeof(opt.fail) === 'function')(opt.fail)(e)
+    }
+}
+</script>
+</html>
